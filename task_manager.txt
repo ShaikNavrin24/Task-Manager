@@ -1,0 +1,136 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Define a structure for a Task
+typedef struct Task {
+    int id;
+    char name[100];
+    struct Task* next;
+} Task;
+
+// Define a structure for the stack (used to store completed tasks)
+typedef struct StackNode {
+    Task* task;
+    struct StackNode* next;
+} StackNode;
+
+Task* head = NULL; // Linked list head pointer for active tasks
+StackNode* completedStack = NULL; // Stack for completed tasks
+int taskIdCounter = 1; // Counter to assign unique IDs to tasks
+
+// Function to create a new task
+Task* createTask(char name[]) {
+    Task* newTask = (Task*)malloc(sizeof(Task));
+    newTask->id = taskIdCounter++;
+    strcpy(newTask->name, name);
+    newTask->next = NULL;
+    return newTask;
+}
+
+// Function to add a task to the linked list
+void addTask(char name[]) {
+    Task* newTask = createTask(name);
+    newTask->next = head;
+    head = newTask;
+    printf("Task '%s' added with ID %d.\n", name, newTask->id);
+}
+
+// Function to display all active tasks
+void displayTasks() {
+    if (head == NULL) {
+        printf("No active tasks.\n");
+        return;
+    }
+    printf("Active Tasks:\n");
+    Task* current = head;
+    while (current != NULL) {
+        printf("ID: %d, Name: %s\n", current->id, current->name);
+        current = current->next;
+    }
+}
+
+// Function to push a completed task onto the stack
+void pushCompletedTask(Task* task) {
+    StackNode* newNode = (StackNode*)malloc(sizeof(StackNode));
+    newNode->task = task;
+    newNode->next = completedStack;
+    completedStack = newNode;
+}
+
+// Function to mark a task as completed
+void completeTask(int id) {
+    Task* current = head;
+    Task* prev = NULL;
+    while (current != NULL) {
+        if (current->id == id) {
+            if (prev == NULL) {
+                head = current->next;
+            } else {
+                prev->next = current->next;
+            }
+            printf("Task '%s' with ID %d marked as completed.\n", current->name, current->id);
+            pushCompletedTask(current);
+            return;
+        }
+        prev = current;
+        current = current->next;
+    }
+    printf("Task with ID %d not found.\n", id);
+}
+
+// Function to display completed tasks
+void displayCompletedTasks() {
+    if (completedStack == NULL) {
+        printf("No completed tasks.\n");
+        return;
+    }
+    printf("Completed Tasks:\n");
+    StackNode* current = completedStack;
+    while (current != NULL) {
+        printf("ID: %d, Name: %s\n", current->task->id, current->task->name);
+        current = current->next;
+    }
+}
+
+// Main function
+int main() {
+    int choice, id;
+    char name[100];
+
+    while (1) {
+        printf("\nTask Manager Menu:\n");
+        printf("1. Add Task\n");
+        printf("2. Display Active Tasks\n");
+        printf("3. Complete Task\n");
+        printf("4. Display Completed Tasks\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter task name: ");
+                scanf(" %[^\n]s", name);
+                addTask(name);
+                break;
+            case 2:
+                displayTasks();
+                break;
+            case 3:
+                printf("Enter task ID to mark as completed: ");
+                scanf("%d", &id);
+                completeTask(id);
+                break;
+            case 4:
+                displayCompletedTasks();
+                break;
+            case 5:
+                printf("Exiting Task Manager...\n");
+                exit(0);
+            default:
+                printf("Invalid choice. Please try again.\n");
+        }
+    }
+    return 0;
+}
